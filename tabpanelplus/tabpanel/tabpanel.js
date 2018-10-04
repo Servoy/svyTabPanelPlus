@@ -463,12 +463,28 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 		   	 * @return {Boolean} a value indicating if tab was successfully removed
 		   	 */
 			$scope.api.removeTabAt = function(index) {
+
 				if(index > 0 && index <= $scope.model.tabs.length) {
 					for(var i = index - 1; i < $scope.model.tabs.length - 1; i++) {
 						$scope.model.tabs[i] = $scope.model.tabs[i + 1];
 					}
 					$scope.model.tabs.length = $scope.model.tabs.length - 1;
 					$scope.model.tabIndex = $scope.getTabIndex($scope.getSelectedTab());
+					
+					// forked from default tabpanel
+					var selectedIndex = $scope.model.tabs.indexOf($scope.model.selectedTab);
+					if(selectedIndex != -1){
+						$scope.model.tabIndex = selectedIndex + 1;
+						
+					} else{
+						var selected = $scope.model.tabs[$scope.model.tabIndex-1];
+						if(selected){
+							selected.active = true;
+						} else {
+							$scope.model.tabIndex = Math.min($scope.model.tabs.length, index);
+						}
+					}
+					
 					return true;
 				}
 				return false;

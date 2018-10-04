@@ -26,7 +26,7 @@
 	        "tabIndex" : { "type": "object", "pushToServer" : "deep" }, 
 	        "tabOrientation" : {"type" :"int", "tags": { "scope" :"design" }, "default":1, "values" :[{"default" :1}, {"TOP":1}, {"HIDE":-1}]}, 
 	        "tabSeq" : {"type" :"tabseq", "tags": { "scope" :"design" }}, 
-	        "tabs" : {"type":"tab[]", "pushToServer": "shallow", "droppable":true}, 
+	        "tabs" : {"type":"tab[]", "pushToServer": "deep", "droppable":true}, 
 	        "transparent" : "boolean", 
 	        "visible" : "visible",
 			"activeTabIndex": { "type": "int", "default": 0, "tags": { "scope": "private" }, "pushToServer": "shallow" }
@@ -158,6 +158,15 @@
 		"getWidth": {
 			"returns": "int"
 		},
+        "indexOf" : {
+        	"parameters" : [
+        					{
+        					"name":"form/formname",
+        					"type":"object"
+        					}
+        				],
+        	"returns" : "int"
+        },
 		"isTabEnabled": {
 			"returns": "boolean",
 			"parameters": [{
