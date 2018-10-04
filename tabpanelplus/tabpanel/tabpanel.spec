@@ -2,9 +2,13 @@
 	"name": "tabpanelplus-tabpanel",
 	"displayName": "Tab Panel Plus",
 	"version": 1,
+	"icon": "tabpanelplus/tabpanel/tab.png",
 	"definition": "tabpanelplus/tabpanel/tabpanel.js",
 	"serverscript": "tabpanelplus/tabpanel/tabpanel_server.js",
-    "libraries": [{"name":"tabpanel", "version":"1", "url":"tabpanelplus/tabpanel/tabpanel.css", "mimetype":"text/css"}],
+	"libraries": [
+			{"name":"tabpanel", "version":"1", "url":"tabpanelplus/tabpanel/tabpanel.css", "mimetype":"text/css"},
+			{"name":"tabpanelcustom", "version":"1.0.1", "url":"tabpanelplus/tabpanel/tabpanelcustom.css", "mimetype":"text/css"}
+		],
 	"model":
 	{
 	        "background" : "color", 
@@ -24,306 +28,230 @@
 	        "tabSeq" : {"type" :"tabseq", "tags": { "scope" :"design" }}, 
 	        "tabs" : {"type":"tab[]", "pushToServer": "shallow", "droppable":true}, 
 	        "transparent" : "boolean", 
-	        "visible" : "visible"
+	        "visible" : "visible",
+			"activeTabIndex": { "type": "int", "default": 0, "tags": { "scope": "private" }, "pushToServer": "shallow" }
 	},
-	"handlers":
-	{
-	        "onChangeMethodID" : {
-	         	
-	        	"parameters":[
-								{
-						          "name":"previousIndex",
-								  "type":"Number"
-								}, 
-								{
-						          "name":"event",
-								  "type":"JSEvent"
-								} 
-							 ]
-	        } 
+
+	"handlers": {
+		"onChangeMethodID": {
+			"parameters": [{
+				"name": "previousIndex",
+				"type": "int"
+			}, {
+				"name": "event",
+				"type": "JSEvent"
+			}]
+		}
 	},
-	"api":
-	{
-	        "addTab": {
-	            "returns": "boolean",
-				"parameters":[
-								{                                                                 
- 								"name":"form/formname",
-								"type":"object"
-			                	},
-             					{                                                                 
- 								"name":"name",
-								"type":"object",
-			            		"optional":true
-			            		},
-             					{                                                                 
- 								"name":"tabText",
-								"type":"object",
-			            		"optional":true
-			            		},
-             					{                                                                 
- 								"name":"tooltip",
-								"type":"object",
-			            		"optional":true
-			            		},
-             					{                                                                 
- 								"name":"iconURL",
-								"type":"object",
-			            		"optional":true
-			            		},
-             					{                                                                 
- 								"name":"fg",
-								"type":"object",
-			            		"optional":true
-			            		},
-             					{                                                                 
- 								"name":"bg",
-								"type":"object",
-			            		"optional":true
-			            		},
-             					{                                                                 
- 								"name":"relatedfoundset/relationname",
-								"type":"object",
-			            		"optional":true
-			            		},
-             					{                                                                 
- 								"name":"index",
-								"type":"object",
-			            		"optional":true
-			            		},
-			            		{
-			            		"name":"showCloseIcon",
-			            		"type":"boolean",
-			            		"optional":true
-			            		}             
-							 ]
-	
-	        },
-	        "getFormName": {
-	            "returns": "string"
-	        },
-	        "getHeight": {
-	            "returns": "int"
-	        },
-	        "getLocationX": {
-	            "returns": "int"
-	        },
-	        "getLocationY": {
-	            "returns": "int"
-	        },
-	        "getMaxTabIndex": {
-	            "returns": "int"
-	        },
-	        "getMnemonicAt": {
-	            "returns": "string",
-				"parameters":[
-								{                                                                 
- 								"name":"i",
-								"type":"int"
-			                	}             
-							 ]
-	
-	        },
-	        "getSelectedTabFormName": {
-	            "returns": "string"
-	        },
-	        "getTabBGColorAt": {
-	            "returns": "string",
-				"parameters":[
-								{                                                                 
- 								"name":"unnamed_0",
-								"type":"int"
-			                	}             
-							 ]
-	
-	        },
-	        "getTabFGColorAt": {
-	            "returns": "string",
-				"parameters":[
-								{                                                                 
- 								"name":"i",
-								"type":"int"
-			                	}             
-							 ]
-	
-	        },
-	        "getTabFormNameAt": {
-	            "returns": "string",
-				"parameters":[
-								{                                                                 
- 								"name":"i",
-								"type":"int"
-			                	}             
-							 ]
-	
-	        },
-	        "getTabNameAt": {
-	            "returns": "string",
-				"parameters":[
-								{                                                                 
- 								"name":"i",
-								"type":"int"
-			                	}             
-							 ]
-	
-	        },
-	        "getTabRelationNameAt": {
-	            "returns": "string",
-				"parameters":[
-								{                                                                 
- 								"name":"i",
-								"type":"int"
-			                	}             
-							 ]
-	
-	        },
-	        "getTabTextAt": {
-	            "returns": "string",
-				"parameters":[
-								{                                                                 
- 								"name":"i",
-								"type":"int"
-			                	}             
-							 ]
-	
-	        },
-	        "getWidth": {
-	            "returns": "int"
-	        },
-	        "indexOf" : {
-	        	"parameters" : [
-	        					{
-	        					"name":"form/formname",
-	        					"type":"object"
-	        					}
-	        				],
-	        	"returns" : "int"
-	        },
-	        "isTabEnabled": {
-	            "returns": "boolean",
-				"parameters":[
-								{                                                                 
- 								"name":"unnamed_0",
-								"type":"int"
-			                	}             
-							 ]
-	
-	        },
-	        "isTabEnabledAt": {
-	            "returns": "boolean",
-				"parameters":[
-								{                                                                 
- 								"name":"i",
-								"type":"int"
-			                	}             
-							 ]
-	
-	        },
-	        "removeAllTabs": {
-	            "returns": "boolean"
-	        },
-	        "removeTabAt": {
-	            "returns": "boolean",
-				"parameters":[
-								{                                                                 
- 								"name":"index",
-								"type":"int"
-			                	}             
-							 ]
-	
-	        },
-	        "setMnemonicAt": {
-				"parameters":[
-								{                                                                 
- 								"name":"index",
-								"type":"int"
-			                	},
-             					{                                                                 
- 								"name":"text",
-								"type":"string"
-			                	}             
-							 ]
-	
-	        },
-	        "setTabBGColorAt": {
-				"parameters":[
-								{                                                                 
- 								"name":"unnamed_0",
-								"type":"int"
-			                	},
-             					{                                                                 
- 								"name":"unnamed_1",
-								"type":"string"
-			                	}             
-							 ]
-	
-	        },
-	        "setTabEnabled": {
-				"parameters":[
-								{                                                                 
- 								"name":"unnamed_0",
-								"type":"int"
-			                	},
-             					{                                                                 
- 								"name":"unnamed_1",
-								"type":"boolean"
-			                	}             
-							 ]
-	
-	        },
-	        "setTabEnabledAt": {
-				"parameters":[
-								{                                                                 
- 								"name":"i",
-								"type":"int"
-			                	},
-             					{                                                                 
- 								"name":"b",
-								"type":"boolean"
-			                	}             
-							 ]
-	
-	        },
-	        "setTabFGColorAt": {
-				"parameters":[
-								{                                                                 
- 								"name":"i",
-								"type":"int"
-			                	},
-             					{                                                                 
- 								"name":"s",
-								"type":"string"
-			                	}             
-							 ]
-	
-	        },
-	        "setTabTextAt": {
-				"parameters":[
-								{                                                                 
- 								"name":"index",
-								"type":"int"
-			                	},
-             					{                                                                 
- 								"name":"text",
-								"type":"string"
-			                	}             
-							 ]
-	
-	        }
+
+	"api": {
+		"addTab": {
+			"returns": "boolean",
+			"parameters": [{
+				"name": "form/formname",
+				"type": "object []"
+			}, {
+				"name": "name",
+				"type": "object",
+				"optional": true
+			}, {
+				"name": "tabText",
+				"type": "object",
+				"optional": true
+			}, {
+				"name": "tooltip",
+				"type": "object",
+				"optional": true
+			}, {
+				"name": "iconURL",
+				"type": "object",
+				"optional": true
+			}, {
+				"name": "fg",
+				"type": "object",
+				"optional": true
+			}, {
+				"name": "bg",
+				"type": "object",
+				"optional": true
+			}, {
+				"name": "relatedfoundset/relationname",
+				"type": "object",
+				"optional": true
+			}, {
+				"name": "index",
+				"type": "object",
+				"optional": true
+			}, {
+	    		"name":"showCloseIcon",
+	    		"type":"boolean",
+	    		"optional":true
+    		}]
+		},
+		"getFormName": {
+			"returns": "string"
+		},
+		"getHeight": {
+			"returns": "int"
+		},
+		"getLocationX": {
+			"returns": "int"
+		},
+		"getLocationY": {
+			"returns": "int"
+		},
+		"getMaxTabIndex": {
+			"returns": "int"
+		},
+		"getMnemonicAt": {
+			"returns": "string",
+			"parameters": [{
+				"name": "i",
+				"type": "int"
+			}]
+		},
+		"getSelectedTabFormName": {
+			"returns": "string"
+		},
+		"getTabBGColorAt": {
+			"returns": "string",
+			"parameters": [{
+				"name": "unnamed_0",
+				"type": "int"
+			}]
+		},
+		"getTabFGColorAt": {
+			"returns": "string",
+			"parameters": [{
+				"name": "i",
+				"type": "int"
+			}]
+		},
+		"getTabFormNameAt": {
+			"returns": "string",
+			"parameters": [{
+				"name": "i",
+				"type": "int"
+			}]
+		},
+		"getTabNameAt": {
+			"returns": "string",
+			"parameters": [{
+				"name": "i",
+				"type": "int"
+			}]
+		},
+		"getTabRelationNameAt": {
+			"returns": "string",
+			"parameters": [{
+				"name": "i",
+				"type": "int"
+			}]
+		},
+		"getTabTextAt": {
+			"returns": "string",
+			"parameters": [{
+				"name": "i",
+				"type": "int"
+			}]
+		},
+		"getWidth": {
+			"returns": "int"
+		},
+		"isTabEnabled": {
+			"returns": "boolean",
+			"parameters": [{
+				"name": "unnamed_0",
+				"type": "int"
+			}]
+		},
+		"isTabEnabledAt": {
+			"returns": "boolean",
+			"parameters": [{
+				"name": "i",
+				"type": "int"
+			}]
+		},
+		"removeAllTabs": {
+			"returns": "boolean"
+		},
+		"removeTabAt": {
+			"returns": "boolean",
+			"parameters": [{
+				"name": "index",
+				"type": "int"
+			}]
+		},
+		"setMnemonicAt": {
+			"parameters": [{
+				"name": "index",
+				"type": "int"
+			}, {
+				"name": "text",
+				"type": "string"
+			}]
+		},
+		"setTabBGColorAt": {
+			"parameters": [{
+				"name": "unnamed_0",
+				"type": "int"
+			}, {
+				"name": "unnamed_1",
+				"type": "string"
+			}]
+		},
+		"setTabEnabled": {
+			"parameters": [{
+				"name": "unnamed_0",
+				"type": "int"
+			}, {
+				"name": "unnamed_1",
+				"type": "boolean"
+			}]
+		},
+		"setTabEnabledAt": {
+			"parameters": [{
+				"name": "i",
+				"type": "int"
+			}, {
+				"name": "b",
+				"type": "boolean"
+			}]
+		},
+		"setTabFGColorAt": {
+			"parameters": [{
+				"name": "i",
+				"type": "int"
+			}, {
+				"name": "s",
+				"type": "string"
+			}]
+		},
+		"setTabTextAt": {
+			"parameters": [{
+				"name": "index",
+				"type": "int"
+			}, {
+				"name": "text",
+				"type": "string"
+			}]
+		}
 	},
-"types": {
-  "tab": {
-  		"name": "string",
-  		"containsFormId": "form",
-  		"text": "tagstring",
-  		"relationName": "relation",
-  		"active": "boolean",
-  		"foreground": "color",
-  		"disabled": "boolean",
-  		"imageMediaID": "media",
-  		"mnemonic": "string",
-  		"showCloseIcon" : "boolean"
-  	}
-}
-	 
+
+	"types": {
+		"tab": {
+			"name": { "type": "string", "tags": { "useAsCaptionInDeveloper" : true, "captionPriority" : 1 } },
+			"containsFormId": "form",
+			"text": { "type": "tagstring", "tags": { "useAsCaptionInDeveloper" : true, "captionPriority" : 2 } },
+			"relationName": "relation",
+			"active": "boolean",
+			"foreground": "color",
+			"disabled": "boolean",
+			"imageMediaID": "media",
+			"mnemonic": "string",
+			"isActive": { "type": "boolean", "default": false, "tags": { "scope": "private" }, "pushToServer": "shallow" },
+  			"showCloseIcon" : "boolean"
+		}
+	}
+
 }

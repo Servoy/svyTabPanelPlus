@@ -4,7 +4,7 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 		transclude: true,
 		scope: {
 			model: "=svyModel",
-			svyServoyapi: "=svyServoyapi",
+			svyServoyapi: "=",
 			handlers: "=svyHandlers",
 			api: "=svyApi"
 		},
@@ -24,14 +24,15 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 					});
 				}
 			}
+
 			$scope.bgstyle = {}
 			$scope.waitingForServerVisibility = {}
 
 			if ($scope.model.selectedTab) {
 			     // if the selected tab is already set then this is a reload of the form and we need to call formWillShow
-				 $scope.svyServoyapi.formWillShow($scope.model.selectedTab.containsFormId, $scope.model.selectedTab.relationName);
+				delete $scope.model.selectedTab;
 			}
-			
+
 			function refresh() {
 				var i = 0;
 				var realTabIndex = 1;
@@ -51,16 +52,14 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 							break;
 						}
 					}
-				
+			    
 				if ($scope.model.tabs){
 					var selectedTabNotFound = true;
-					
 					for(i=0; i<$scope.model.tabs.length; i++) {
 						
 						if (i === realTabIndex)
-						{	
+						{
 							$scope.model.tabs[i].active = true;
-							 
 						}
 						else 
 							$scope.model.tabs[i].active = false;
@@ -73,6 +72,10 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 					
 					if (selectedTabNotFound)
 						delete $scope.model.selectedTab;
+
+					$timeout(function() {
+						updateActiveTabIndex();
+					}, 0);
 				}
 			}
 
@@ -84,17 +87,42 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 			$scope.$watch("model.tabs", function(newValue) {
 				if ($log.debugEnabled) $log.debug("svy * model.tabs reference updated; length = " + ($scope.model.tabs ? $scope.model.tabs.length : undefined) + " -- " + new Date().getTime());
 				refresh();
-			});  
-			
-			$scope.$watch("model.selectedTab", function(newValue) {
-//				if ($log.debugEnabled) $log.debug("svy * model.tabs reference updated; length = " + ($scope.model.tabs ? $scope.model.tabs.length : undefined) + " -- " + new Date().getTime());
-//				refresh();
-			});  
+			});        
 
+			$scope.$watch("model.visible", function(newValue,oldValue) {
+	    	  		if ($scope.model.selectedTab && newValue !== oldValue && $scope.model.selectedTab.containsFormId)
+	    	  		{
+	    	  			if (newValue)
+	    	  			{
+	    	  				$scope.svyServoyapi.formWillShow($scope.model.selectedTab.containsFormId,$scope.model.selectedTab.relationName);
+	    	  			}
+	    	  			else
+	    	  			{
+	    	  				$scope.svyServoyapi.hideForm($scope.model.selectedTab.containsFormId);
+	    	  			}	
+	    	  		}
+	    	  		else if (newValue === true && oldValue === false && !$scope.model.selectedTab)
+	    	  		{
+	    	  			for(var i=0;i<$scope.model.tabs.length;i++) {
+	    					if ($scope.model.tabs[i].active) {
+	    						if ($scope.model.selectedTab != $scope.model.tabs[i])
+	    						{
+	    							$scope.select($scope.model.tabs[i]);
+	    						} 
+	    						break;
+	    					}
+	    				}
+	    	  		}
+	  		  });
+			 
 			$scope.getTemplateUrl = function() {
-				return "tabpanelplus/tabpanel/tabpanel.html";
+				if ($scope.model.tabOrientation == -1 || ($scope.model.tabOrientation == 0 && $scope.model.tabs && $scope.model.tabs.length == 1)) return "tabpanelplus/tabpanel/tablesspanel.html";
+				else if($scope.model.tabOrientation == -4) return "tabpanelplus/tabpanel/accordionpanel.html"
+				else return "tabpanelplus/tabpanel/tabpanel.html";
 			}
 			$scope.getActiveTabUrl = function() {
+				if (!$scope.model.visible || !$scope.model.tabs) return "";
+				
 				for(var i=0;i<$scope.model.tabs.length;i++) {
 					if ($scope.model.tabs[i].active) {
 						if ($scope.model.selectedTab != $scope.model.tabs[i])
@@ -104,6 +132,11 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 						break;
 					}
 				}
+
+				if(!$scope.model.selectedTab && $scope.model.tabs.length) {
+					$scope.select($scope.model.tabs[0]);
+				}
+
 				if ($scope.model.selectedTab && !$scope.waitingForServerVisibility[$scope.model.selectedTab.containsFormId])
 					return $scope.svyServoyapi.getFormUrl($scope.model.selectedTab.containsFormId);
 				else
@@ -121,6 +154,18 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 			}
 
 			$scope.getForm = function(tab) {
+				if(!$scope.model.selectedTab) {
+					for(var i=0;i<$scope.model.tabs.length;i++) {
+						if ($scope.model.tabs[i].active) {
+								$scope.select($scope.model.tabs[i]);
+							break;
+						}
+					}
+	
+					if(!$scope.model.selectedTab && $scope.model.tabs.length) {
+						$scope.select($scope.model.tabs[0]);
+					}
+				}
 				if ($scope.model.selectedTab && (tab.containsFormId == $scope.model.selectedTab.containsFormId) && (tab.relationName == $scope.model.selectedTab.relationName)) {
 					return $scope.svyServoyapi.getFormUrl(tab.containsFormId);
 				}
@@ -133,7 +178,7 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 				}
 				return "";
 			}
-
+			
 			function setFormVisible(tab,event) {
 				if (tab.containsFormId) $scope.svyServoyapi.formWillShow(tab.containsFormId, tab.relationName);
 				if ($log.debugEnabled) $log.debug("svy * selectedTab = '" + tab.containsFormId + "' -- " + new Date().getTime());
@@ -148,6 +193,34 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 				} 
 			}
 
+			function updateActiveTabIndex() {
+				if($scope.model.tabs) {
+					$scope.model.activeTabIndex = 0;
+
+					var activeSet = false;
+					for(var i=0;i<$scope.model.tabs.length;i++) {
+						$scope.model.tabs[i].isActive = activeSet ? false : $scope.model.tabs[i].active; 
+						if (!activeSet && $scope.model.tabs[i].active)
+						{
+							$scope.model.activeTabIndex = i;
+							activeSet = true;
+						}
+					}
+				}
+			}
+			
+			function isValidTab(tab) {
+				if($scope.model.tabs) {
+					for(var i=0;i<$scope.model.tabs.length;i++) {
+						if ($scope.model.tabs[i] === tab)
+						{
+							return true;
+						}
+					}
+				}
+				return false;
+			}
+
 			$scope.getTabIndex = function(tab) {
 				if(tab) {
 					for(var i=0;i<$scope.model.tabs.length;i++) {
@@ -160,43 +233,187 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 			}
 
 			$scope.select = function(tab) {
-				if ($log.debugEnabled) $log.debug("svy * Will select tab '" + (tab ? tab.containsFormId : undefined) + "'. Previously selected: '" + ($scope.model.selectedTab ? $scope.model.selectedTab.containsFormId : undefined) + "'. Same: " + (tab == $scope.model.selectedTab));
-				if ((tab != undefined && $scope.model.selectedTab != undefined && tab.containsFormId == $scope.model.selectedTab.containsFormId && tab.relationName == $scope.model.selectedTab.relationName) || (tab == $scope.model.selectedTab)) return;
-				var selectEvent = $window.event ? $window.event : null;
-				if ($scope.model.selectedTab) {
-					if ($scope.model.selectedTab.containsFormId && !$scope.waitingForServerVisibility[$scope.model.selectedTab.containsFormId])
-					{
-						var formInWait = $scope.model.selectedTab.containsFormId;
-						$scope.waitingForServerVisibility[formInWait] = true;
-						var promise =  $scope.svyServoyapi.hideForm($scope.model.selectedTab.containsFormId);
-						if ($log.debugEnabled) $log.debug("svy * Will hide previously selected form (tab): " + $scope.model.selectedTab.containsFormId);
-						promise.then(function(ok) {
-							if ($log.debugEnabled) $log.debug("svy * Previously selected form (tab) hide completed with '" + ok + "': " + $scope.model.selectedTab.containsFormId);
-							delete $scope.waitingForServerVisibility[formInWait];
-							if (!tab.active)
-							{
-								// visibility changed again, just ignore this
-								if ($log.debugEnabled) $log.debug("svy * Tab '" + tab.containsFormId + "': no longer active, ignore making it visible");
-								return;
-							}
-							if (ok) {
-								setFormVisible(tab,selectEvent);
-							}
-							else {
-								tab.active = false;
-								$scope.model.selectedTab.active = true;
-							}
-						})
+				if (!$scope.model.visible) return ;
+				if(isValidTab(tab)) {
+					if (!tab.active) {
+						if($scope.model.selectedTab) {
+							$scope.model.selectedTab.active = false;
+						}
+						tab.active = true;
+						updateActiveTabIndex();
 					}
-				}
-				else {
-					setFormVisible(tab, selectEvent);
+					if ($log.debugEnabled) $log.debug("svy * Will select tab '" + (tab ? tab.containsFormId : undefined) + "'. Previously selected: '" + ($scope.model.selectedTab ? $scope.model.selectedTab.containsFormId : undefined) + "'. Same: " + (tab == $scope.model.selectedTab));
+					if ((tab != undefined && $scope.model.selectedTab != undefined && tab.containsFormId == $scope.model.selectedTab.containsFormId && tab.relationName == $scope.model.selectedTab.relationName) || (tab == $scope.model.selectedTab)) return;
+					var selectEvent = $window.event ? $window.event : null;
+					if ($scope.model.selectedTab) {
+						if ($scope.model.selectedTab.containsFormId && !$scope.waitingForServerVisibility[$scope.model.selectedTab.containsFormId])
+						{
+							var formInWait = $scope.model.selectedTab.containsFormId;
+							$scope.waitingForServerVisibility[formInWait] = true;
+							var currentSelectedTab = $scope.model.selectedTab;
+							var promise =  $scope.svyServoyapi.hideForm($scope.model.selectedTab.containsFormId,null,null,tab.containsFormId, tab.relationName);
+							if ($log.debugEnabled) $log.debug("svy * Will hide previously selected form (tab): " + $scope.model.selectedTab.containsFormId);
+							promise.then(function(ok) {
+								if ($log.debugEnabled) $log.debug("svy * Previously selected form (tab) hide completed with '" + ok + "': " + $scope.model.selectedTab.containsFormId);
+								delete $scope.waitingForServerVisibility[formInWait];
+								if (!tab.active)
+								{
+									// visibility changed again, just ignore this
+									if ($log.debugEnabled) $log.debug("svy * Tab '" + tab.containsFormId + "': no longer active, ignore making it visible");
+									// it could be that the server was sending the correct state in the mean time already at the same time 
+									// we try to hide it. just call show again to be sure.
+									if (currentSelectedTab == $scope.model.selectedTab && $scope.model.selectedTab.active) $scope.svyServoyapi.formWillShow($scope.model.selectedTab.containsFormId,$scope.model.selectedTab.relationName);
+									return;
+								}
+								if (ok) {
+									setFormVisible(tab,selectEvent);
+								}
+								else {
+									tab.active = false;
+									$scope.model.selectedTab.active = true;
+									updateActiveTabIndex();
+								}
+							})
+						}
+					}
+					else {
+						setFormVisible(tab, selectEvent);
+					}
 				}
 			}
 
 			$scope.getTabsHeight = function() {
     		  return {top:$element.find(".nav-tabs").height()+"px"};
     	 	}
+			
+			// scrolling tabs section
+			var buttons = {};
+			this.setButton = function(btn, direction) {
+				buttons[direction] = btn;
+			}
+			this.initScrollTabs = function(navTabs) {
+				
+				function getLeftAndCount(compareValue) {
+					var count = 28; // margin
+					var left = 0;
+					var hitItemWidth = 0;
+
+					  navTabs.children("li").each(function() {
+						    var itemWidth = $(this).outerWidth(true);
+						    if (left == 0 && (count  + itemWidth > compareValue)) {
+						    	left = count;
+						    	hitItemWidth = itemWidth;
+						    } 
+						    count  += itemWidth
+					  });
+					  return {count:count,left:left, itemWidth:hitItemWidth};
+				}
+				
+				function enableButtons() {
+					if (buttons["left"] && buttons["right"]) {
+						var offset = Math.abs(parseInt(navTabs.css("left")));
+						var wrapperWidth = navTabs.parent().innerWidth();
+						var count = getLeftAndCount(0).count;
+	
+						if ((count - 28 > wrapperWidth) && count > (wrapperWidth+offset+1))
+							  buttons["right"].show();
+						  else
+							  buttons["right"].hide();
+						  
+						  if (offset > 0)
+							  buttons["left"].show();
+						  else
+							  buttons["left"].hide();
+					}
+				}
+
+				$scope.moveRight = function() {
+					var wrapperWidth = navTabs.parent().innerWidth();
+					var offset = parseInt(navTabs.css("left"));
+					var maxWidth = Math.abs(offset) + wrapperWidth;
+					var lc = getLeftAndCount(maxWidth);
+					var left = lc.left;
+
+					  var visibleTabsLength = lc.count - left;
+					  if (visibleTabsLength  < wrapperWidth) {
+						  left  -= (wrapperWidth-visibleTabsLength)
+					  } 
+					  navTabs.animate({
+						      left: "-" + left + "px"
+						    }, 'slow',enableButtons);
+				}
+	
+				$scope.moveLeft = function() {
+					var wrapperWidth = navTabs.parent().innerWidth();
+					var offset = Math.abs(parseInt(navTabs.css("left")));
+					var lc = getLeftAndCount(offset);
+					var left = lc.left;
+					  
+						left  = (left + lc.itemWidth + 10) - wrapperWidth;
+				    	if (left < 0) {
+				    		left = 0;
+				    	}
+				    	navTabs.animate({
+						      left: "-" + left + "px"
+						    }, 'slow',enableButtons);
+				}
+				
+				$scope.$watch(function() {return navTabs.parent().innerWidth()}, function(newVal, oldVal) {
+					if (newVal != oldVal) {
+						var offset = Math.abs(parseInt(navTabs.css("left")));
+						if (offset > 0) {
+						  var wrapperWidth = newVal;
+						  var count = 28;
+						  navTabs.children("li").each(function() {
+							    var itemWidth = $(this).outerWidth(true);
+							    count  += itemWidth; 
+						  });	
+						  var rendered = count - offset;
+						  if (wrapperWidth > rendered) {
+							   var left = offset - rendered;
+							   if (left <0) left = 0;
+								navTabs.animate({
+								      left: "-" + left + "px"
+								    }, 'slow',enableButtons);
+						  }
+						  else enableButtons();
+						}
+						else enableButtons();
+					}
+				});
+	
+				$scope.$watch(function() {return navTabs.children().length}, function(newVal, oldVal) {
+					if (newVal > 0) {
+						$timeout(function(){
+						var currentIndex = $scope.model.activeTabIndex;
+						if (currentIndex > 0) {
+							var wrapperWidth = navTabs.parent().innerWidth();
+							  var count = 28;
+							  var left = 0;
+							  navTabs.children("li").each(function() {
+								    var itemWidth = $(this).outerWidth(true);
+								    if (currentIndex-- == 0) {
+								    	left = count;
+								    }
+								    count  += itemWidth; 
+							  });	
+							  if (count - 28 > wrapperWidth) {
+								  var visibleTabsLength = count - left;
+								  if (visibleTabsLength  < wrapperWidth) {
+									  left  -= (wrapperWidth-visibleTabsLength)
+									  left = count - wrapperWidth
+								  } 
+									navTabs.animate({
+									      left: "-" + left + "px"
+									    }, 'slow',enableButtons);
+							  }
+							  else enableButtons();
+						}
+						else enableButtons();
+						})
+					}
+				});
+			}
 
 			// the api defined in the spec file
 			/**
@@ -211,7 +428,8 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 			 * @param bg optional the HTML RGB Hexadecimal background color for the tab (default is null)
 			 * @param relatedfoundset/relationname optional the specified name of the related foundset (default is null)
 			 * @param index optional the specified index of a tab, default is -1, will add tab to the end, this index is 0 based
-			 * @param show the close icon, default is false
+			 * @param index optional the specified index of a tab, default is -1, will add tab to the end, this index is 0 based
+			 * 
 			 * @return {Boolean} a value indicating if tab was successfully added
 			 */
 			$scope.api.addTab = function(form, nameArg, tabText, tooltip, iconURL, fg, bg, relation, index, showCloseIcon) {
@@ -233,7 +451,7 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 						active: false,
 						disabled: false,
 						foreground: fg, 
-						showCloseIcon: showCloseIcon === true};
+						showCloseIcon: showCloseIcon === true };
 				$scope.model.tabIndex = $scope.getTabIndex($scope.getSelectedTab());
 				return true;
 			}
@@ -245,29 +463,12 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 		   	 * @return {Boolean} a value indicating if tab was successfully removed
 		   	 */
 			$scope.api.removeTabAt = function(index) {
-				
 				if(index > 0 && index <= $scope.model.tabs.length) {
 					for(var i = index - 1; i < $scope.model.tabs.length - 1; i++) {
 						$scope.model.tabs[i] = $scope.model.tabs[i + 1];
 					}
 					$scope.model.tabs.length = $scope.model.tabs.length - 1;
-
-					var selectedIndex = $scope.model.tabs.indexOf($scope.model.selectedTab);
-					if(selectedIndex != -1){
-						$scope.model.tabIndex = selectedIndex + 1;
-						
-					} else{
-						var selected = $scope.model.tabs[$scope.model.tabIndex-1];
-						if(selected){
-//							$scope.model.selectedTab = selected;
-//							$scope.select(selected);
-//							refresh();
-							// FIXME: Cannot get selected tab to update
-							selected.active = true;
-						} else {
-							$scope.model.tabIndex = Math.min($scope.model.tabs.length, index);
-						}
-					}
+					$scope.model.tabIndex = $scope.getTabIndex($scope.getSelectedTab());
 					return true;
 				}
 				return false;
@@ -473,7 +674,22 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 				return $scope.model.name;
 			}
 		},
-		template: "<div style='height:100%;width:100%;position:absolute;' svy-border='model.borderType'svy-font='model.fontType'><div ng-include='getTemplateUrl()'></div></div>"
+		template: "<div style='height:100%;width:100%;position:absolute;' svy-border='model.borderType'svy-font='model.fontType'><div ng-include='getTemplateUrl()' class='relativeMaxSize'></div></div>"
 	};
+}).directive("tabpanelInitializer", function() {
+	return {
+		restrict: 'A',
+		require: "^tabpanelplusTabpanel",
+		link: function (scope, element, attrs, tabCtrl) {
+			tabCtrl.initScrollTabs(element.children("ul"));
+		    }
+	}
+}).directive("tabpanelButton", function() {
+	return {
+		restrict: 'A',
+		require: "^tabpanelplusTabpanel",
+		link: function (scope, element, attrs, tabCtrl) {
+			tabCtrl.setButton(element, attrs["tabpanelButton"]);
+		    }
+	}
 })
-
