@@ -692,7 +692,7 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 		},
 		template: "<div style='height:100%;width:100%;position:absolute;' svy-border='model.borderType'svy-font='model.fontType'><div ng-include='getTemplateUrl()' class='relativeMaxSize'></div></div>"
 	};
-}).directive("tabpanelInitializer", function() {
+}).directive("tabpanelPlusInitializer", function() {
 	return {
 		restrict: 'A',
 		require: "^tabpanelplusTabpanel",
@@ -700,7 +700,7 @@ angular.module('tabpanelplusTabpanel',['servoy']).directive('tabpanelplusTabpane
 			tabCtrl.initScrollTabs(element.children("ul"));
 		    }
 	}
-}).directive("tabpanelButton", function() {
+}).directive("tabpanelPlusButton", function() {
 	return {
 		restrict: 'A',
 		require: "^tabpanelplusTabpanel",
